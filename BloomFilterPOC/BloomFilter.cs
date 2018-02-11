@@ -2,19 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace BloomFilterPOC
 {
-    public class BloomFilter<T>
+    public class BloomFilter
     {
         private const double DefaultFalsePositiveRate = 0.001;
         private int _count;
         private int _targetCapacity;
         private int _hashFunctionCount;
         private double _falsePositiveRate;
-        private Func<T, int> _secondaryHash;
+        private Func<string, int> _secondaryHash;
         private BitArray _bitArray;
 
         public int TargetCapacity
@@ -69,26 +70,16 @@ namespace BloomFilterPOC
             }
         }
 
-        public BloomFilter(int targetCapacity, Func<T, int> secondaryHash_NotGetHashCode)
-          : this(targetCapacity, BloomFilter<T>.CalculateHashCount(targetCapacity, 0.001), 0.001, secondaryHash_NotGetHashCode)
-        {
-        }
-
-        public BloomFilter(int targetCapacity, double falsePositiveRate, Func<T, int> secondaryHash_NotGetHashCode)
-          : this(targetCapacity, BloomFilter<T>.CalculateHashCount(targetCapacity, falsePositiveRate), falsePositiveRate, secondaryHash_NotGetHashCode)
-        {
-        }
-
-        public BloomFilter(int targetCapacity, int hashFunctionCount, double falsePositiveRate, Func<T, int> secondaryHash_NotGetHashCode)
+        public BloomFilter(int targetCapacity, double falsePositiveRate)
         {
             this._targetCapacity = targetCapacity;
-            this._hashFunctionCount = hashFunctionCount;
+            this._hashFunctionCount = CalculateHashCount(targetCapacity, falsePositiveRate);
             this._falsePositiveRate = falsePositiveRate;
-            this._secondaryHash = secondaryHash_NotGetHashCode;
-            this._bitArray = new BitArray(BloomFilter<T>.CalculateBitArrayLength(targetCapacity, falsePositiveRate));
+            this._secondaryHash = SecondaryHash;
+            this._bitArray = new BitArray(CalculateBitArrayLength(targetCapacity, falsePositiveRate));
         }
 
-        public bool Contains(T item)
+        public bool Contains(string item)
         {
             int hashCode = item.GetHashCode();
             if (!this._bitArray.GetValueFromHash(hashCode))
@@ -104,7 +95,7 @@ namespace BloomFilterPOC
             return true;
         }
 
-        public void Add(T item)
+        public void Add(string item)
         {
             int hashCode = item.GetHashCode();
             this._bitArray.SetValueFromHash(hashCode);
@@ -115,6 +106,13 @@ namespace BloomFilterPOC
             this._count = this._count + 1;
         }
 
+        private int SecondaryHash(string input)
+        {
+            MD5 md5Hasher = MD5.Create();
+            var hashed = md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return BitConverter.ToInt32(hashed, 0);
+        }
+
         private static int CalculateBitArrayLength(int capacity, double falsePositiveRate)
         {
             return (int)Math.Ceiling((double)capacity * Math.Log(falsePositiveRate, 1.0 / Math.Pow(2.0, Math.Log(2.0))));
@@ -122,7 +120,7 @@ namespace BloomFilterPOC
 
         private static int CalculateHashCount(int capacity, double falsePositiveRate)
         {
-            return (int)Math.Round(Math.Log(2.0) * (double)BloomFilter<T>.CalculateBitArrayLength(capacity, falsePositiveRate) / (double)capacity);
+            return (int)Math.Round(Math.Log(2.0) * (double)CalculateBitArrayLength(capacity, falsePositiveRate) / (double)capacity);
         }
     }
 

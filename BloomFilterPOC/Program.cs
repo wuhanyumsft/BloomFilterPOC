@@ -13,7 +13,7 @@ namespace BloomFilterPOC
         {
             int count = 1000000;
 
-            BloomFilter<string> bf = new BloomFilter<string>(count, 0.001, SecondaryHash);
+            BloomFilter bf = new BloomFilter(count, 0.001);
             for (int i = 0; i < count; i++)
             {
                 bf.Add((i * 3).ToString());
@@ -34,7 +34,7 @@ namespace BloomFilterPOC
             Console.WriteLine($"Memory : {bf.BitLength / 1024} KB");
 
             correntNumber = 0;
-            var newBf = new BloomFilter<string>(count, 0.001, SecondaryHash);
+            var newBf = new BloomFilter(count, 0.001);
             newBf.BitArray = output;
             for (int i = 0; i < count * 3; i++)
             {
@@ -53,11 +53,6 @@ namespace BloomFilterPOC
             };
         }
 
-        private static int SecondaryHash(string input)
-        {
-            MD5 md5Hasher = MD5.Create();
-            var hashed = md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return BitConverter.ToInt32(hashed, 0);
-        }
+
     }
 }
