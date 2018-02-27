@@ -15,8 +15,11 @@ namespace BloomFilterPOC
         private int _targetCapacity;
         private int _hashFunctionCount;
         private double _falsePositiveRate;
+        private Func<string, int> _firstHash;
         private Func<string, int> _secondaryHash;
         private BitArray _bitArray;
+        private MD5 md5Hasher;
+        SHA256Managed sha256hash;
 
         public int TargetCapacity
         {
@@ -80,13 +83,14 @@ namespace BloomFilterPOC
             this._targetCapacity = targetCapacity;
             this._hashFunctionCount = CalculateHashCount(targetCapacity, falsePositiveRate);
             this._falsePositiveRate = falsePositiveRate;
-            this._secondaryHash = SecondaryHash;
+            this._firstHash = MurMur3Hash;
+            this._secondaryHash = SHA256Hash; // DefaultHash, MD5Hash, SHA256Hash, MurMur3Hash
             this._bitArray = new BitArray(CalculateBitArrayLength(targetCapacity, falsePositiveRate));
         }
 
         public bool Contains(string item)
         {
-            int hashCode = item.GetHashCode();
+            int hashCode = this._firstHash(item);
             if (!this._bitArray.GetValueFromHash(hashCode))
                 return false;
             int hash = this._secondaryHash(item);
@@ -102,7 +106,7 @@ namespace BloomFilterPOC
 
         public void Add(string item)
         {
-            int hashCode = item.GetHashCode();
+            int hashCode = this._firstHash(item);
             this._bitArray.SetValueFromHash(hashCode);
             int hash = this._secondaryHash(item);
             this._bitArray.SetValueFromHash(hash);
@@ -111,12 +115,38 @@ namespace BloomFilterPOC
             this._count = this._count + 1;
         }
 
-        private int SecondaryHash(string input)
+        private int DefaultHash(string input)
         {
-            MD5 md5Hasher = MD5.Create();
+            return input.GetHashCode();
+        }
+
+        private int MD5Hash(string input)
+        {
+            if (md5Hasher == null)
+            {
+                md5Hasher = MD5.Create();
+            }
             var hashed = md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(input));
             return BitConverter.ToInt32(hashed, 0);
         }
+
+        private int SHA256Hash(string input)
+        {
+            var message = Encoding.ASCII.GetBytes(input);       
+            if (sha256hash == null)
+            {
+                sha256hash = new SHA256Managed();
+            }
+            var hashValue = sha256hash.ComputeHash(message);
+            return BitConverter.ToInt32(hashValue, 0);
+        }
+
+        private int MurMur3Hash(string input)
+        {
+            var message = Encoding.ASCII.GetBytes(input);
+            return MurMurHash3.Hash(message);
+        }
+
 
         private static int CalculateBitArrayLength(int capacity, double falsePositiveRate)
         {

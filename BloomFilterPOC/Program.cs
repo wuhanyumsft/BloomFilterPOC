@@ -19,10 +19,8 @@ namespace BloomFilterPOC
     {
         static void Main(string[] args)
         {
-            string clientName = "";
-            string accessKey = "";
-            Exp1();
-            //TestDotnerApiBloomFilters(clientName, accessKey);
+            // Exp1();
+            TestDotnerApiBloomFilters(clientName, accessKey);
         }
 
         public static void TestDotnerApiBloomFilters(string clientName, string accessKey)
@@ -119,7 +117,7 @@ namespace BloomFilterPOC
         
         public static void GenerateDotnetApiBloomFilter(string clientName, string accessKey)
         {
-            double falsePositiveRate = 0.001;
+            double falsePositiveRate = 0.00001;
             string baseUri = "https://op-dhs-prod-read-nus.azurewebsites.net/";// "https://op-dhs-sandbox-read.azurewebsites.net/"; //
             
             IDocumentHostingService dhsClient = new DocumentHostingServiceClient(new Uri(baseUri), clientName, accessKey);
@@ -195,8 +193,9 @@ namespace BloomFilterPOC
         {
             Stopwatch timer = new Stopwatch();
             timer.Start();
-            int count = 160000;
-            double falsePositveRate = 0.0001;
+            int count = 1000000;
+            double falsePositveRate = 0.00001;
+            int valueCount = 3;
 
             BloomFilter bf = new BloomFilter(count, falsePositveRate);
             for (int i = 0; i < count; i++)
@@ -205,10 +204,8 @@ namespace BloomFilterPOC
             }
             int correntNumber = 0;
             var output = bf.BitArray;
-            var outputStr = string.Join(",", output);
             // Console.WriteLine(outputStr);
-            Console.WriteLine($"Output : {outputStr.Length * 8 / 1024} KB");
-            for (int i = 0; i < count * 3; i++)
+            for (int i = 0; i < count * valueCount; i++)
             {
                 if (bf.Contains(i.ToString()))
                 {
@@ -229,9 +226,12 @@ namespace BloomFilterPOC
                 }
             }
             Console.WriteLine($"new bf {correntNumber} : {count}");
+            Console.WriteLine($"Hash function number : {newBf.HashFunctionCount}");
+            Console.WriteLine($"False positive rate : {newBf.FalsePositiveRate}");
             Console.WriteLine($"Memory : {newBf.BitLength / 1024} KB");
             timer.Stop();
-            Console.WriteLine($"Experiment use {timer.ElapsedMilliseconds / 1000} seconds.");
+            Console.WriteLine($"Experiment use {(double)timer.ElapsedMilliseconds / 1000} seconds.");
+            Console.WriteLine($"Each hash set computer use {(double)timer.ElapsedMilliseconds / count / (valueCount + 1)} milli seconds.");
 
             while (true)
             {

@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BloomFilter.cs" />
+    <Compile Include="MurMurHash3.cs" />
     <Compile Include="DepotBloomFilter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
