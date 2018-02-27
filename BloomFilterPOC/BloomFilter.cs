@@ -64,9 +64,14 @@ namespace BloomFilterPOC
             {
                 return this._bitArray.ToIntArray();
             }
+
             set
             {
-                this._bitArray = value.FromIntArray();
+                var previousBitArray = value.FromIntArray();
+                for (int i = 0; i < this._bitArray.Length && i < previousBitArray.Length; i++)
+                {
+                    this._bitArray.Set(i, previousBitArray.Get(i));
+                }
             }
         }
 
