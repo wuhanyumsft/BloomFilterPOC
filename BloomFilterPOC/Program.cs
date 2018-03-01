@@ -19,8 +19,13 @@ namespace BloomFilterPOC
     {
         static void Main(string[] args)
         {
-            // Exp1();
-            TestDotnerApiBloomFilters(clientName, accessKey);
+            for (int i = 1; i < 7; i++)
+            {
+                Exp1((int)Math.Pow(13, i));
+                Console.WriteLine("-----------------------" + i);
+            }
+            
+            // TestDotnerApiBloomFilters(clientName, accessKey);
         }
 
         public static void TestDotnerApiBloomFilters(string clientName, string accessKey)
@@ -189,11 +194,10 @@ namespace BloomFilterPOC
             Console.ReadLine();
         }
 
-        public static void Exp1()
+        public static void Exp1(int count = 1000000)
         {
             Stopwatch timer = new Stopwatch();
             timer.Start();
-            int count = 1000000;
             double falsePositveRate = 0.00001;
             int valueCount = 3;
 
@@ -204,7 +208,8 @@ namespace BloomFilterPOC
             }
             int correntNumber = 0;
             var output = bf.BitArray;
-            // Console.WriteLine(outputStr);
+            // Console.WriteLine(output);
+            Console.WriteLine($"Output Length: {output.Length / 1024} KB");
             for (int i = 0; i < count * valueCount; i++)
             {
                 if (bf.Contains(i.ToString()))
@@ -213,7 +218,7 @@ namespace BloomFilterPOC
                 }
             }
             Console.WriteLine($"{correntNumber} : {count}");
-            Console.WriteLine($"Memory : {bf.BitLength / 1024} KB");
+            Console.WriteLine($"Memory : {bf.BitLength / 1024 / 8} KB");
 
             correntNumber = 0;
             var newBf = new BloomFilter(count, falsePositveRate);
@@ -228,16 +233,19 @@ namespace BloomFilterPOC
             Console.WriteLine($"new bf {correntNumber} : {count}");
             Console.WriteLine($"Hash function number : {newBf.HashFunctionCount}");
             Console.WriteLine($"False positive rate : {newBf.FalsePositiveRate}");
-            Console.WriteLine($"Memory : {newBf.BitLength / 1024} KB");
+            Console.WriteLine($"Memory : {newBf.BitLength / 1024 / 8} KB");
             timer.Stop();
             Console.WriteLine($"Experiment use {(double)timer.ElapsedMilliseconds / 1000} seconds.");
             Console.WriteLine($"Each hash set computer use {(double)timer.ElapsedMilliseconds / count / (valueCount + 1)} milli seconds.");
 
+            Console.ReadLine();
+            /*
             while (true)
             {
                 var input = Console.ReadLine();
                 Console.WriteLine(bf.Contains(input));
             };
+            */
         }
     }
 }

@@ -61,20 +61,26 @@ namespace BloomFilterPOC
             }
         }
 
-        public int[] BitArray
+        public string BitArray
         {
             get
             {
-                return this._bitArray.ToIntArray();
+                byte[] ret = new byte[(this._bitArray.Length - 1) / 8 + 1];
+                this._bitArray.CopyTo(ret, 0);
+                return Convert.ToBase64String(ret);
             }
 
             set
             {
-                var previousBitArray = value.FromIntArray();
-                for (int i = 0; i < this._bitArray.Length && i < previousBitArray.Length; i++)
+                byte[] ret = Convert.FromBase64String(value);
+                this._bitArray =new BitArray(ret);
+                /*
+                var tmp = new BitArray(ret);
+                for (int i = 0; i < this._bitArray.Length && i < tmp.Length; i++)
                 {
-                    this._bitArray.Set(i, previousBitArray.Get(i));
+                    this._bitArray.Set(i, tmp.Get(i));
                 }
+                */
             }
         }
 
@@ -83,8 +89,8 @@ namespace BloomFilterPOC
             this._targetCapacity = targetCapacity;
             this._hashFunctionCount = CalculateHashCount(targetCapacity, falsePositiveRate);
             this._falsePositiveRate = falsePositiveRate;
-            this._firstHash = MurMur3Hash;
-            this._secondaryHash = SHA256Hash; // DefaultHash, MD5Hash, SHA256Hash, MurMur3Hash
+            this._firstHash = DefaultHash;
+            this._secondaryHash = MurMur3Hash; // DefaultHash, MD5Hash, SHA256Hash, MurMur3Hash
             this._bitArray = new BitArray(CalculateBitArrayLength(targetCapacity, falsePositiveRate));
         }
 
@@ -150,7 +156,7 @@ namespace BloomFilterPOC
 
         private static int CalculateBitArrayLength(int capacity, double falsePositiveRate)
         {
-            return (int)Math.Ceiling((double)capacity * Math.Log(falsePositiveRate, 1.0 / Math.Pow(2.0, Math.Log(2.0))));
+            return (int)Math.Ceiling((double)capacity * Math.Log(falsePositiveRate, 1.0 / Math.Pow(2.0, Math.Log(2.0))) / 8) * 8;
         }
 
         private static int CalculateHashCount(int capacity, double falsePositiveRate)

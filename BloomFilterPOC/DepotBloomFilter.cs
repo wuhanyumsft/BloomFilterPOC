@@ -9,7 +9,7 @@ namespace BloomFilterPOC
     public class DepotBloomFilter
     {
         public string DepotName { get; set; }
-        public int[] BloomFilter { get; set; }
+        public string BloomFilter { get; set; }
         public int Count { get; set; }
         public double FalsePositiveRate { get; set; }
     }
