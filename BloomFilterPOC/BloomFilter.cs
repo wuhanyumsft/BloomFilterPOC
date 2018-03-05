@@ -61,26 +61,18 @@ namespace BloomFilterPOC
             }
         }
 
-        public string BitArray
+        public byte[] BitArray
         {
             get
             {
                 byte[] ret = new byte[(this._bitArray.Length - 1) / 8 + 1];
                 this._bitArray.CopyTo(ret, 0);
-                return Convert.ToBase64String(ret);
+                return ret;
             }
 
             set
             {
-                byte[] ret = Convert.FromBase64String(value);
-                this._bitArray =new BitArray(ret);
-                /*
-                var tmp = new BitArray(ret);
-                for (int i = 0; i < this._bitArray.Length && i < tmp.Length; i++)
-                {
-                    this._bitArray.Set(i, tmp.Get(i));
-                }
-                */
+                this._bitArray =new BitArray(value);
             }
         }
 
